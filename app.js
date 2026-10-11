@@ -60,10 +60,16 @@
         body: 'It works! Sent at ' + new Date().toLocaleTimeString(),
         icon: 'icons/icon-192.png',
         badge: 'icons/icon-192.png',
-        tag: 'demo',
+        // Unique tag per click: a repeated tag is replaced silently (no popup) unless renotify is set.
+        tag: 'demo-' + Date.now(),
+        renotify: true,
         data: { url: './' },
       });
-      setStatus('Notification sent.', 'ok');
+      const notes = await reg.getNotifications();
+      setStatus(notes.length
+        ? 'Notification sent.'
+        : 'Sent, but nothing is showing. Check Windows Focus assist / Do Not Disturb and Chrome notification settings.',
+        notes.length ? 'ok' : 'err');
       btn.disabled = false;
     } catch (e) {
       setStatus('Could not send: ' + e.message, 'err');
