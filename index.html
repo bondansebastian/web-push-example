@@ -17,24 +17,29 @@
 </head>
 <body>
   <main class="card">
+    <div class="lang-switch" role="group" data-i18n-aria-label="langLabel" aria-label="Language">
+      <button type="button" data-lang="en" aria-pressed="true" lang="en">EN</button>
+      <button type="button" data-lang="id" aria-pressed="false" lang="id">ID</button>
+    </div>
     <img class="logo" src="icons/icon-192.png" alt="" width="72" height="72">
-    <h1>Web Push Demo</h1>
-    <p class="lead">Tap the button to send yourself a notification.</p>
+    <h1 data-i18n="title">Web Push Demo</h1>
+    <p class="lead" data-i18n="lead">Tap the button to send yourself a notification.</p>
 
-    <button id="notify" class="btn" type="button">Send notification</button>
+    <button id="notify" class="btn" type="button" data-i18n="button">Send notification</button>
     <p id="status" class="status" role="status" aria-live="polite">Checking support…</p>
 
     <section id="ios-hint" class="hint" hidden>
-      <h2>Install on iPhone / iPad</h2>
-      <p>iOS only allows notifications for web apps added to the Home Screen (iOS 16.4+).</p>
+      <h2 data-i18n="iosTitle">Install on iPhone / iPad</h2>
+      <p data-i18n="iosIntro">iOS only allows notifications for web apps added to the Home Screen (iOS 16.4+).</p>
       <ol>
-        <li>Open this page in <strong>Safari</strong>.</li>
-        <li>Tap the <strong>Share</strong> button.</li>
-        <li>Choose <strong>Add to Home Screen</strong>.</li>
-        <li>Open the new app icon and tap the button again.</li>
+        <li data-i18n-html="iosStep1">Open this page in <strong>Safari</strong>.</li>
+        <li data-i18n-html="iosStep2">Tap the <strong>Share</strong> button.</li>
+        <li data-i18n-html="iosStep3">Choose <strong>Add to Home Screen</strong>.</li>
+        <li data-i18n-html="iosStep4">Open the new app icon and tap the button again.</li>
       </ol>
     </section>
   </main>
+  <script src="i18n.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

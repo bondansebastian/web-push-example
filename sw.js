@@ -1,14 +1,22 @@
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
 
+const DEFAULTS = {
+  en: { title: 'Web Push Demo', body: 'Hello from a push event!' },
+  id: { title: 'Demo Web Push', body: 'Halo dari event push!' },
+};
+
 // Real server push lands here; the page's button uses the same display path.
 self.addEventListener('push', (event) => {
   let data = {};
   try { data = event.data ? event.data.json() : {}; } catch (_) {
     data = { body: event.data && event.data.text() };
   }
-  event.waitUntil(self.registration.showNotification(data.title || 'Web Push Demo', {
-    body: data.body || 'Hello from a push event!',
+  // Optional `lang` ("en" | "id") in the push payload picks the default text; title/body override it.
+  const def = DEFAULTS[data.lang] || DEFAULTS.en;
+  event.waitUntil(self.registration.showNotification(data.title || def.title, {
+    body: data.body || def.body,
+    lang: data.lang || 'en',
     icon: 'icons/icon-192.png',
     badge: 'icons/icon-192.png',
     data: { url: data.url || './' },

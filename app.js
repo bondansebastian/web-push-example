@@ -8,27 +8,37 @@
   const isStandalone = window.navigator.standalone === true ||
     window.matchMedia('(display-mode: standalone)').matches;
 
-  function setStatus(msg, kind) {
-    statusEl.textContent = msg;
-    statusEl.className = 'status' + (kind ? ' ' + kind : '');
-  }
+  const { t } = window.I18n;
 
-  function disable(msg) {
+  // Keep the status as a message key so it can be re-rendered when the language changes.
+  let current = { key: 'checking', params: null, kind: '' };
+  function renderStatus() {
+    statusEl.textContent = t(current.key, current.params);
+    statusEl.className = 'status' + (current.kind ? ' ' + current.kind : '');
+  }
+  function setStatus(key, kind, params) {
+    current = { key, params: params || null, kind };
+    renderStatus();
+  }
+  window.I18n.onChange(renderStatus);
+  renderStatus(); // a saved language may already be applied
+
+  function disable(key, params) {
     btn.disabled = true;
-    setStatus(msg, 'err');
+    setStatus(key, 'err', params);
   }
 
   if (isIOS && !isStandalone) {
     iosHint.hidden = false;
-    disable('Add this page to your Home Screen to enable notifications.');
+    disable('errIosInstall');
     return;
   }
   if (!('serviceWorker' in navigator) || !('Notification' in window)) {
-    disable('This browser does not support web notifications.');
+    disable('errUnsupported');
     return;
   }
   if (!window.isSecureContext) {
-    disable('Notifications require HTTPS.');
+    disable('errInsecure');
     return;
   }
 
@@ -37,11 +47,11 @@
 
   ready.then(() => {
     if (Notification.permission === 'denied') {
-      disable('Notifications are blocked. Enable them in your browser/site settings.');
+      disable('errBlockedBrowser');
     } else {
-      setStatus('Ready.');
+      setStatus('ready');
     }
-  }).catch((e) => disable('Service worker failed: ' + e.message));
+  }).catch((e) => disable('errSw', { msg: e.message }));
 
   btn.addEventListener('click', async () => {
     btn.disabled = true;
@@ -49,30 +59,26 @@
       // Must be called directly from the tap for iOS.
       const permission = await Notification.requestPermission();
       if (permission !== 'granted') {
-        setStatus(permission === 'denied'
-          ? 'Notifications are blocked. Enable them in settings.'
-          : 'Permission was dismissed. Tap again to retry.', 'err');
+        setStatus(permission === 'denied' ? 'errBlocked' : 'errDismissed', 'err');
         btn.disabled = permission === 'denied';
         return;
       }
       const reg = await ready;
-      await reg.showNotification('Web Push Demo', {
-        body: 'It works! Sent at ' + new Date().toLocaleTimeString(),
+      await reg.showNotification(t('title'), {
+        body: t('notifyBody', { time: new Date().toLocaleTimeString(window.I18n.getLang()) }),
         icon: 'icons/icon-192.png',
         badge: 'icons/icon-192.png',
         // Unique tag per click: a repeated tag is replaced silently (no popup) unless renotify is set.
         tag: 'demo-' + Date.now(),
         renotify: true,
+        lang: window.I18n.getLang(),
         data: { url: './' },
       });
       const notes = await reg.getNotifications();
-      setStatus(notes.length
-        ? 'Notification sent.'
-        : 'Sent, but nothing is showing. Check Windows Focus assist / Do Not Disturb and Chrome notification settings.',
-        notes.length ? 'ok' : 'err');
+      setStatus(notes.length ? 'sent' : 'sentHidden', notes.length ? 'ok' : 'err');
       btn.disabled = false;
     } catch (e) {
-      setStatus('Could not send: ' + e.message, 'err');
+      setStatus('errSend', 'err', { msg: e.message });
       btn.disabled = false;
     }
   });
